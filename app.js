@@ -36,6 +36,17 @@ const state={
 
 
 /* =========================================================
+   ANALYTICS STATE
+   ========================================================= */
+
+const analyticsState={
+  weeks:{},
+  loading:false,
+  loaded:false
+};
+
+
+/* =========================================================
    HELPERS
    ========================================================= */
 
@@ -190,8 +201,8 @@ async function loadNews(){
       .slice(0,10);
 
     state.news=stories.length
-      ? stories
-      : fallbackNews;
+      ?stories
+      :fallbackNews;
 
   }catch(e){
 
@@ -210,8 +221,8 @@ function renderNews(){
   if(!ticker) return;
 
   const stories=state.news.length
-    ? state.news
-    : fallbackNews;
+    ?state.news
+    :fallbackNews;
 
   const items=stories
     .map((headline,i)=>`
@@ -222,11 +233,6 @@ function renderNews(){
       <span class="news-separator">◆</span>
     `)
     .join("");
-
-  /*
-     Duplicate the content so the scrolling animation
-     can loop seamlessly.
-  */
 
   ticker.innerHTML=items+items;
 }
@@ -322,11 +328,6 @@ function updateCountdowns(){
           </div>
           <i>:</i>
           <div>
-            <strong>${nfl.hours}</strong>
-            <span>HRS</span>
-          </div>
-          <i>:</i>
-          <div>
             <strong>${nfl.minutes}</strong>
             <span>MIN</span>
           </div>
@@ -349,6 +350,15 @@ async function load(){
 
   state.loading=true;
   state.error=null;
+
+  /*
+     Reset analytics so the current week's numbers
+     can be refreshed automatically.
+  */
+
+  analyticsState.loaded=false;
+  analyticsState.loading=false;
+  analyticsState.weeks={};
 
   render();
 
@@ -429,17 +439,26 @@ async function load(){
       loading:false
     });
 
-    $("#status-dot").classList.remove("error");
+    const statusDot=$("#status-dot");
+    const statusText=$("#status-text");
+    const updated=$("#last-updated");
 
-    $("#status-text").textContent=
-      "Live from Sleeper";
+    if(statusDot){
+      statusDot.classList.remove("error");
+    }
 
-    $("#last-updated").textContent=
-      "Updated "+
-      new Date().toLocaleTimeString([],{
-        hour:"numeric",
-        minute:"2-digit"
-      });
+    if(statusText){
+      statusText.textContent="Live from Sleeper";
+    }
+
+    if(updated){
+      updated.textContent=
+        "Updated "+
+        new Date().toLocaleTimeString([],{
+          hour:"numeric",
+          minute:"2-digit"
+        });
+    }
 
     render();
 
@@ -450,10 +469,16 @@ async function load(){
     state.loading=false;
     state.error=e;
 
-    $("#status-dot").classList.add("error");
+    const statusDot=$("#status-dot");
+    const statusText=$("#status-text");
 
-    $("#status-text").textContent=
-      "Unable to load Sleeper";
+    if(statusDot){
+      statusDot.classList.add("error");
+    }
+
+    if(statusText){
+      statusText.textContent="Unable to load Sleeper";
+    }
 
     render();
   }
@@ -786,13 +811,7 @@ function home(){
     </section>
 
 
-    <!-- =================================================
-         COUNTDOWNS + NEWS
-         ================================================= -->
-
     <section class="event-board">
-
-      <!-- DRAFT PICK COMBINE -->
 
       <article class="event-card draft-event">
 
@@ -828,8 +847,6 @@ function home(){
       </article>
 
 
-      <!-- NFL KICKOFF -->
-
       <article class="event-card nfl-event">
 
         <div class="event-top">
@@ -863,8 +880,6 @@ function home(){
 
       </article>
 
-
-      <!-- NEWS -->
 
       <article class="event-card news-event">
 
@@ -1327,7 +1342,7 @@ function home(){
 
 
 /* =========================================================
-   OTHER PAGES
+   STANDINGS PAGE
    ========================================================= */
 
 function standingsPage(){
@@ -1382,6 +1397,10 @@ function standingsPage(){
 }
 
 
+/* =========================================================
+   MATCHUPS PAGE
+   ========================================================= */
+
 function matchupsPage(){
 
   return `
@@ -1420,6 +1439,10 @@ function matchupsPage(){
   `;
 }
 
+
+/* =========================================================
+   TEAMS
+   ========================================================= */
 
 function teamCard(r){
 
@@ -1572,6 +1595,10 @@ function filterTeams(q){
 }
 
 
+/* =========================================================
+   TRANSACTIONS
+   ========================================================= */
+
 function transactionsPage(){
 
   const rows=state.transactions
@@ -1710,6 +1737,10 @@ function txRow(t){
   `;
 }
 
+
+/* =========================================================
+   PLAYOFFS
+   ========================================================= */
 
 function bracketPage(){
 
@@ -1862,262 +1893,20 @@ function bracketPage(){
 
 
 /* =========================================================
-   ROUTING / RENDER
+   ANALYTICS MATH
    ========================================================= */
-
-function page(){
-
-  if(state.loading){
-
-    return `
-      <div class="loading-screen">
-
-        <div class="spinner"></div>
-
-        <h1>
-          Loading your league
-        </h1>
-
-        <p>
-          Pulling live data from Sleeper…
-        </p>
-
-      </div>
-    `;
-  }
-
-  if(state.error){
-
-    return `
-      <div class="error-box">
-
-        <h2>
-          Couldn't load the league
-        </h2>
-
-        <p class="muted">
-          Check your connection and try again.
-          This site uses Sleeper's public read-only API.
-        </p>
-
-        <button
-          class="btn"
-          onclick="load()">
-          Retry
-        </button>
-
-      </div>
-    `;
-  }
-
-  return ({
-    standings:standingsPage,
-    matchups:matchupsPage,
-    teams:teamsPage,
-    transactions:transactionsPage,
-    playoffs:bracketPage
-  }[state.route]||home)();
-}
-
-
-function render(){
-
-  if(state.league){
-
-    $("#brand-name").textContent=
-      state.league.name||
-      "League HQ";
-
-    $("#brand-season").textContent=
-      `${state.league.season||""} · Sleeper Fantasy Football`;
-
-    $("#sleeper-link").href=
-      `https://sleeper.app/leagues/${LEAGUE_ID}`;
-  }
-
-  document
-    .querySelectorAll("[data-route]")
-    .forEach(
-      a=>
-        a.classList.toggle(
-          "active",
-          a.dataset.route===state.route
-        )
-    );
-
-  $("#content").innerHTML=page();
-
-  /*
-     Render news after the home page exists.
-  */
-
-  if(state.route==="home"){
-    renderNews();
-    updateCountdowns();
-  }
-}
-
-
-function route(){
-
-  const r=(
-    location.hash
-      .replace("#","")
-      ||
-      "home"
-  ).split("/")[0];
-
-  state.route=[
-    "home",
-    "standings",
-    "matchups",
-    "teams",
-    "transactions",
-    "playoffs"
-  ].includes(r)
-    ?r
-    :"home";
-
-  render();
-}
-
-
-/* =========================================================
-   UI
-   ========================================================= */
-
-function toast(msg){
-
-  const t=$("#toast");
-
-  t.textContent=msg;
-
-  t.classList.add("show");
-
-  setTimeout(
-    ()=>t.classList.remove("show"),
-    1800
-  );
-}
-
-
-function copyShare(){
-
-  const u=
-    location.href.split("#")[0]+
-    "#home";
-
-  navigator
-    .clipboard
-    ?.writeText(u)
-    .then(
-      ()=>toast("Share link copied")
-    )
-    .catch(
-      ()=>toast(u)
-    );
-}
-
-
-/* =========================================================
-   GLOBALS
-   ========================================================= */
-
-window.copyShare=copyShare;
-window.load=load;
-window.filterTeams=filterTeams;
-
-
-/* =========================================================
-   THEME
-   ========================================================= */
-
-$("#refresh").addEventListener(
-  "click",
-  load
-);
-
-$("#theme").addEventListener(
-  "click",
-  ()=>{
-
-    const d=
-      document.documentElement.dataset.theme==="dark";
-
-    document.documentElement.dataset.theme=
-      d
-        ?"light"
-        :"dark";
-
-    localStorage.setItem(
-      "league_theme",
-      d
-        ?"light"
-        :"dark"
-    );
-  }
-);
-
-const saved=
-  localStorage.getItem("league_theme");
-
-if(saved){
-  document.documentElement.dataset.theme=saved;
-}
-
-
-/* =========================================================
-   STARTUP
-   ========================================================= */
-
-window.addEventListener(
-  "hashchange",
-  route
-);
-
-route();
-load();
-
-loadNews();
-
-setInterval(
-  updateCountdowns,
-  1000
-);
-
-setInterval(
-  loadNews,
-  10*60*1000
-);
-
-setInterval(
-  load,
-  5*60*1000
-);
-
-/* =========================================================
-   ADVANCED LEAGUE ANALYTICS
-   ========================================================= */
-
-const analyticsState={
-  weeks:{},
-  loading:false,
-  loaded:false,
-  selectedWeek:null
-};
-
-
-/* ---------------------------------------------------------
-   BASIC MATH
-   --------------------------------------------------------- */
 
 function mean(values){
+
   const v=values.filter(Number.isFinite);
+
   if(!v.length) return 0;
+
   return v.reduce((a,b)=>a+b,0)/v.length;
 }
 
 function median(values){
+
   const v=values
     .filter(Number.isFinite)
     .slice()
@@ -2128,11 +1917,12 @@ function median(values){
   const m=Math.floor(v.length/2);
 
   return v.length%2
-    ? v[m]
-    : (v[m-1]+v[m])/2;
+    ?v[m]
+    :(v[m-1]+v[m])/2;
 }
 
 function stddev(values){
+
   const v=values.filter(Number.isFinite);
 
   if(v.length<2) return 0;
@@ -2149,6 +1939,7 @@ function clamp(n,min,max){
 }
 
 function percentile(values,p){
+
   const v=values
     .filter(Number.isFinite)
     .slice()
@@ -2157,18 +1948,23 @@ function percentile(values,p){
   if(!v.length) return 0;
 
   const i=(v.length-1)*p;
+
   const lo=Math.floor(i);
   const hi=Math.ceil(i);
 
-  if(lo===hi) return v[lo];
+  if(lo===hi){
+    return v[lo];
+  }
 
-  return v[lo]+(v[hi]-v[lo])*(i-lo);
+  return v[lo]+
+    (v[hi]-v[lo])*
+    (i-lo);
 }
 
 
-/* ---------------------------------------------------------
-   WEEKLY SLEEPER DATA
-   --------------------------------------------------------- */
+/* =========================================================
+   LOAD ANALYTICS HISTORY
+   ========================================================= */
 
 async function loadAnalyticsWeeks(){
 
@@ -2178,20 +1974,17 @@ async function loadAnalyticsWeeks(){
 
   analyticsState.loading=true;
 
+  /*
+     Sleeper's current week can change while the season
+     is active, so we rebuild the dataset from the
+     completed/current weeks whenever Analytics is opened
+     or the main app refreshes.
+  */
+
   const current=Math.min(
     Math.max(Number(state.week)||1,1),
     18
   );
-
-  const weeks={};
-
-  /*
-     Fetch every week that has happened.
-
-     We intentionally do not depend on localStorage.
-     That means a new week automatically appears
-     for everybody visiting the site.
-  */
 
   const requests=[];
 
@@ -2201,7 +1994,9 @@ async function loadAnalyticsWeeks(){
       get(`/league/${LEAGUE_ID}/matchups/${w}`)
         .then(data=>({
           week:w,
-          data:Array.isArray(data)?data:[]
+          data:Array.isArray(data)
+            ?data
+            :[]
         }))
         .catch(()=>({
           week:w,
@@ -2213,10 +2008,14 @@ async function loadAnalyticsWeeks(){
 
   const results=await Promise.all(requests);
 
+  const weeks={};
+
   results.forEach(x=>{
+
     if(x.data.length){
       weeks[x.week]=x.data;
     }
+
   });
 
   analyticsState.weeks=weeks;
@@ -2225,13 +2024,17 @@ async function loadAnalyticsWeeks(){
 }
 
 
-/* ---------------------------------------------------------
-   BUILD TEAM WEEK HISTORY
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS HISTORY
+   ========================================================= */
 
 function analyticsHistory(){
 
   const history={};
+
+  /*
+     First collect every team's weekly scores.
+  */
 
   Object.keys(analyticsState.weeks)
     .sort((a,b)=>Number(a)-Number(b))
@@ -2244,6 +2047,7 @@ function analyticsHistory(){
         const rid=Number(x.roster_id);
 
         if(!history[rid]){
+
           history[rid]={
             roster_id:rid,
             weeks:[],
@@ -2255,6 +2059,7 @@ function analyticsHistory(){
             pointsFor:0,
             pointsAgainst:0
           };
+
         }
 
         history[rid].weeks.push({
@@ -2268,7 +2073,7 @@ function analyticsHistory(){
 
 
   /*
-     Turn weekly matchup data into actual games.
+     Now reconstruct head-to-head games.
   */
 
   Object.keys(analyticsState.weeks)
@@ -2290,7 +2095,9 @@ function analyticsHistory(){
 
       Object.values(groups).forEach(g=>{
 
-        if(g.length<2) return;
+        if(g.length<2){
+          return;
+        }
 
         const a=g[0];
         const b=g[1];
@@ -2301,7 +2108,9 @@ function analyticsHistory(){
         const ap=Number(a.points)||0;
         const bp=Number(b.points)||0;
 
-        if(!history[ar] || !history[br]) return;
+        if(!history[ar] || !history[br]){
+          return;
+        }
 
         history[ar].opponents.push({
           week:Number(week),
@@ -2322,14 +2131,20 @@ function analyticsHistory(){
         history[br].pointsAgainst+=ap;
 
         if(ap>bp){
+
           history[ar].wins++;
           history[br].losses++;
+
         }else if(bp>ap){
+
           history[br].wins++;
           history[ar].losses++;
+
         }else{
+
           history[ar].ties++;
           history[br].ties++;
+
         }
 
       });
@@ -2341,7 +2156,10 @@ function analyticsHistory(){
 
     h.scores=h.weeks.map(x=>x.points);
 
-    h.games=h.wins+h.losses+h.ties;
+    h.games=
+      h.wins+
+      h.losses+
+      h.ties;
 
   });
 
@@ -2350,22 +2168,23 @@ function analyticsHistory(){
 }
 
 
-/* ---------------------------------------------------------
-   ALL-PLAY / EXPECTED WINS
-   --------------------------------------------------------- */
+/* =========================================================
+   ADVANCED METRICS
+   ========================================================= */
 
 function calculateAdvancedMetrics(){
 
   const history=analyticsHistory();
+
   const teams=Object.values(history);
 
-  const allScores=teams.flatMap(t=>t.scores);
+  const allScores=teams.flatMap(
+    t=>t.scores
+  );
 
   const leagueMean=mean(allScores);
 
-  const leagueMedian=median(allScores);
-
-  const result=teams.map(team=>{
+  return teams.map(team=>{
 
     const scores=team.scores;
 
@@ -2373,34 +2192,53 @@ function calculateAdvancedMetrics(){
 
     const deviation=stddev(scores);
 
+
+    /* -----------------------------------------------------
+       ALL PLAY
+       ----------------------------------------------------- */
+
     let allPlayWins=0;
     let allPlayGames=0;
 
-    /*
-       Every team is compared against every other team's
-       score in the same week.
-    */
-
     scores.forEach((score,index)=>{
 
-      const week=team.weeks[index]?.week;
+      const week=
+        team.weeks[index]?.week;
 
       teams.forEach(other=>{
 
-        if(other.roster_id===team.roster_id) return;
+        if(
+          other.roster_id===
+          team.roster_id
+        ){
+          return;
+        }
 
-        const otherWeek=other.weeks.find(
-          x=>x.week===week
-        );
+        const otherWeek=
+          other.weeks.find(
+            x=>x.week===week
+          );
 
-        if(!otherWeek) return;
+        if(!otherWeek){
+          return;
+        }
 
         allPlayGames++;
 
-        if(score>otherWeek.points){
+        if(
+          score>
+          otherWeek.points
+        ){
+
           allPlayWins++;
-        }else if(score===otherWeek.points){
+
+        }else if(
+          score===
+          otherWeek.points
+        ){
+
           allPlayWins+=.5;
+
         }
 
       });
@@ -2410,43 +2248,58 @@ function calculateAdvancedMetrics(){
 
     const allPlayPct=
       allPlayGames
-        ? allPlayWins/allPlayGames
-        : 0;
+        ?allPlayWins/allPlayGames
+        :0;
 
 
-    /*
-       Expected wins.
-
-       Instead of simply using points scored,
-       we estimate how often each week's score
-       would have beaten the league's other teams.
-    */
+    /* -----------------------------------------------------
+       EXPECTED WINS
+       ----------------------------------------------------- */
 
     let expectedWins=0;
 
     scores.forEach((score,index)=>{
 
-      const week=team.weeks[index]?.week;
+      const week=
+        team.weeks[index]?.week;
 
       let possible=0;
       let wins=0;
 
       teams.forEach(other=>{
 
-        if(other.roster_id===team.roster_id) return;
+        if(
+          other.roster_id===
+          team.roster_id
+        ){
+          return;
+        }
 
-        const otherWeek=other.weeks.find(
-          x=>x.week===week
-        );
+        const otherWeek=
+          other.weeks.find(
+            x=>x.week===week
+          );
 
-        if(!otherWeek) return;
+        if(!otherWeek){
+          return;
+        }
 
         possible++;
 
-        if(score>otherWeek.points){
+        if(
+          score>
+          otherWeek.points
+        ){
+
           wins++;
-        }else if(score===otherWeek.points){
+
+        }else if(
+          score===
+          otherWeek.points
+        ){
+
           wins+=.5;
+
         }
 
       });
@@ -2459,132 +2312,121 @@ function calculateAdvancedMetrics(){
 
 
     const actualWins=
-      team.wins+(team.ties*.5);
+      team.wins+
+      team.ties*.5;
 
 
-    /*
-       Luck.
-
-       Positive = schedule helped you.
-       Negative = schedule hurt you.
-    */
+    /* -----------------------------------------------------
+       LUCK
+       ----------------------------------------------------- */
 
     const luck=
-      actualWins-expectedWins;
+      actualWins-
+      expectedWins;
 
 
-    /*
-       Efficiency.
-
-       50 is league average.
-
-       A team that consistently scores above
-       the league scoring environment gets a
-       higher efficiency score.
-    */
+    /* -----------------------------------------------------
+       EFFICIENCY
+       ----------------------------------------------------- */
 
     const efficiency=
       leagueMean
-        ? clamp((avg/leagueMean)*100,0,150)
-        : 0;
+        ?clamp(
+          avg/leagueMean*100,
+          0,
+          150
+        )
+        :0;
 
 
-    /*
-       Ceiling.
-
-       How good your top weeks are compared
-       to the league.
-
-    */
+    /* -----------------------------------------------------
+       CEILING / FLOOR
+       ----------------------------------------------------- */
 
     const ceiling=
       leagueMean
-        ? percentile(scores,.9)/leagueMean*100
-        : 0;
-
-
-    /*
-       Floor.
-
-       How ugly your bottom weeks are.
-
-    */
+        ?percentile(scores,.9)/
+          leagueMean*
+          100
+        :0;
 
     const floor=
       leagueMean
-        ? percentile(scores,.1)/leagueMean*100
-        : 0;
+        ?percentile(scores,.1)/
+          leagueMean*
+          100
+        :0;
 
 
-    /*
-       Consistency.
-
-       Lower volatility = higher consistency.
-    */
+    /* -----------------------------------------------------
+       CONSISTENCY
+       ----------------------------------------------------- */
 
     const consistency=
       avg
-        ? clamp(
-            100-
-            (deviation/avg*100)*2.5,
-            0,
+        ?clamp(
+          100-
+          (
+            deviation/
+            avg*
             100
-          )
-        : 0;
+          )*
+          2.5,
+          0,
+          100
+        )
+        :0;
 
 
-    /*
-       Volatility.
-
-       Standard deviation expressed as a
-       percentage of average scoring.
-    */
+    /* -----------------------------------------------------
+       VOLATILITY
+       ----------------------------------------------------- */
 
     const volatility=
       avg
-        ? deviation/avg*100
-        : 0;
+        ?deviation/
+          avg*
+          100
+        :0;
 
 
-    /*
-       Dominance.
-
-       Basically: how often you were simply
-       better than the other team.
-    */
-
-    const dominance=
-      allPlayPct*100;
-
-
-    /*
-       Power Index.
-
-       Weighted composite.
-
-       This is intentionally not a simple
-       standings formula.
-    */
+    /* -----------------------------------------------------
+       POWER INDEX
+       ----------------------------------------------------- */
 
     const powerIndex=clamp(
       50+
-      (avg-leagueMean)*.55+
-      (actualWins-expectedWins)*4+
-      (allPlayPct-.5)*35+
-      (consistency-50)*.12,
+
+      (avg-leagueMean)*
+      .55+
+
+      (actualWins-expectedWins)*
+      4+
+
+      (allPlayPct-.5)*
+      35+
+
+      (consistency-50)*
+      .12,
+
       0,
       100
     );
 
 
     return {
+
       ...team,
 
       average:avg,
+
       median:median(scores),
-      standardDeviation:deviation,
+
+      standardDeviation:
+        deviation,
 
       expectedWins,
+
       actualWins,
 
       luck,
@@ -2601,23 +2443,24 @@ function calculateAdvancedMetrics(){
 
       volatility,
 
-      dominance,
+      dominance:
+        allPlayPct*100,
 
       powerIndex
+
     };
 
-  });
-
-
-  return result.sort(
-    (a,b)=>b.powerIndex-a.powerIndex
+  }).sort(
+    (a,b)=>
+      b.powerIndex-
+      a.powerIndex
   );
 }
 
 
-/* ---------------------------------------------------------
-   FORMATTERS
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS FORMATTERS
+   ========================================================= */
 
 function metricNumber(n,digits=1){
 
@@ -2651,11 +2494,15 @@ function metricClass(n){
 }
 
 
-/* ---------------------------------------------------------
-   MINI EXPLANATIONS
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS DEFINITION
+   ========================================================= */
 
-function analyticsDefinition(title,description,value){
+function analyticsDefinition(
+  title,
+  description,
+  value
+){
 
   return `
     <div class="analytics-definition">
@@ -2677,9 +2524,9 @@ function analyticsDefinition(title,description,value){
 }
 
 
-/* ---------------------------------------------------------
-   TEAM ANALYTICS CARD
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS TEAM CARD
+   ========================================================= */
 
 function analyticsTeamCard(team,rank){
 
@@ -2704,16 +2551,24 @@ function analyticsTeamCard(team,rank){
           ${String(rank).padStart(2,"0")}
         </div>
 
-        ${avatar(team.roster_id,"analytics-avatar")}
+        ${avatar(
+          team.roster_id,
+          "analytics-avatar"
+        )}
 
         <div class="analytics-team-name">
 
           <strong>
-            ${esc(teamName(team.roster_id))}
+            ${esc(
+              teamName(team.roster_id)
+            )}
           </strong>
 
           <span>
-            ${record} · ${metricNumber(team.average)} PPG
+            ${record}
+            ·
+            ${metricNumber(team.average)}
+            PPG
           </span>
 
         </div>
@@ -2725,7 +2580,9 @@ function analyticsTeamCard(team,rank){
           </small>
 
           <strong>
-            ${metricNumber(team.powerIndex)}
+            ${metricNumber(
+              team.powerIndex
+            )}
           </strong>
 
         </div>
@@ -2738,12 +2595,25 @@ function analyticsTeamCard(team,rank){
         <div class="analytics-bar">
 
           <div>
-            <span>EFFICIENCY</span>
-            <b>${metricNumber(team.efficiency)}%</b>
+            <span>
+              EFFICIENCY
+            </span>
+
+            <b>
+              ${metricNumber(
+                team.efficiency
+              )}%
+            </b>
           </div>
 
           <i>
-            <em style="width:${clamp(team.efficiency,0,100)}%"></em>
+            <em
+              style="width:${clamp(
+                team.efficiency,
+                0,
+                100
+              )}%">
+            </em>
           </i>
 
         </div>
@@ -2752,12 +2622,29 @@ function analyticsTeamCard(team,rank){
         <div class="analytics-bar">
 
           <div>
-            <span>ALL-PLAY</span>
-            <b>${metricNumber(team.allPlayPct*100)}%</b>
+
+            <span>
+              ALL-PLAY
+            </span>
+
+            <b>
+              ${metricNumber(
+                team.allPlayPct*100
+              )}%
+            </b>
+
           </div>
 
           <i>
-            <em style="width:${clamp(team.allPlayPct*100,0,100)}%"></em>
+
+            <em
+              style="width:${clamp(
+                team.allPlayPct*100,
+                0,
+                100
+              )}%">
+            </em>
+
           </i>
 
         </div>
@@ -2766,12 +2653,29 @@ function analyticsTeamCard(team,rank){
         <div class="analytics-bar">
 
           <div>
-            <span>CONSISTENCY</span>
-            <b>${metricNumber(team.consistency)}</b>
+
+            <span>
+              CONSISTENCY
+            </span>
+
+            <b>
+              ${metricNumber(
+                team.consistency
+              )}
+            </b>
+
           </div>
 
           <i>
-            <em style="width:${clamp(team.consistency,0,100)}%"></em>
+
+            <em
+              style="width:${clamp(
+                team.consistency,
+                0,
+                100
+              )}%">
+            </em>
+
           </i>
 
         </div>
@@ -2783,40 +2687,112 @@ function analyticsTeamCard(team,rank){
 
         <div>
           <small>xW</small>
-          <strong>${metricNumber(team.expectedWins)}</strong>
-          <span>expected wins</span>
-        </div>
 
-        <div>
-          <small>LUCK</small>
-          <strong class="${metricClass(team.luck)}">
-            ${signed(team.luck)}
+          <strong>
+            ${metricNumber(
+              team.expectedWins
+            )}
           </strong>
-          <span>${luckLabel}</span>
+
+          <span>
+            expected wins
+          </span>
         </div>
 
-        <div>
-          <small>CEILING</small>
-          <strong>${metricNumber(team.ceiling)}%</strong>
-          <span>elite-score potential</span>
-        </div>
 
         <div>
-          <small>FLOOR</small>
-          <strong>${metricNumber(team.floor)}%</strong>
-          <span>10th percentile output</span>
+
+          <small>
+            LUCK
+          </small>
+
+          <strong
+            class="${metricClass(team.luck)}">
+
+            ${signed(team.luck)}
+
+          </strong>
+
+          <span>
+            ${luckLabel}
+          </span>
+
         </div>
 
-        <div>
-          <small>σ</small>
-          <strong>${metricNumber(team.standardDeviation)}</strong>
-          <span>weekly deviation</span>
-        </div>
 
         <div>
-          <small>VOLATILITY</small>
-          <strong>${metricNumber(team.volatility)}%</strong>
-          <span>scoring variance</span>
+
+          <small>
+            CEILING
+          </small>
+
+          <strong>
+            ${metricNumber(
+              team.ceiling
+            )}%
+          </strong>
+
+          <span>
+            elite-score potential
+          </span>
+
+        </div>
+
+
+        <div>
+
+          <small>
+            FLOOR
+          </small>
+
+          <strong>
+            ${metricNumber(
+              team.floor
+            )}%
+          </strong>
+
+          <span>
+            10th percentile output
+          </span>
+
+        </div>
+
+
+        <div>
+
+          <small>
+            σ
+          </small>
+
+          <strong>
+            ${metricNumber(
+              team.standardDeviation
+            )}
+          </strong>
+
+          <span>
+            weekly deviation
+          </span>
+
+        </div>
+
+
+        <div>
+
+          <small>
+            VOLATILITY
+          </small>
+
+          <strong>
+            ${metricNumber(
+              team.volatility
+            )}%
+          </strong>
+
+          <span>
+            scoring variance
+          </span>
+
         </div>
 
       </div>
@@ -2826,17 +2802,21 @@ function analyticsTeamCard(team,rank){
 }
 
 
-/* ---------------------------------------------------------
-   WEEKLY TRAJECTORY
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS TRAJECTORY
+   ========================================================= */
 
 function analyticsTrajectory(teams){
 
-  const weeks=Object.keys(analyticsState.weeks)
+  const weeks=
+    Object.keys(
+      analyticsState.weeks
+    )
     .map(Number)
     .sort((a,b)=>a-b);
 
   if(!weeks.length){
+
     return `
       <div class="analytics-empty">
         No weekly data yet.
@@ -2845,30 +2825,27 @@ function analyticsTrajectory(teams){
   }
 
 
-  /*
-     Pure HTML/CSS sparkline.
-
-     This avoids adding another external chart
-     library to the site.
-  */
-
   return `
     <div class="analytics-trajectory">
 
       <div class="analytics-trajectory-head">
 
         <div>
+
           <div class="section-label">
             WEEKLY TRAJECTORY
           </div>
 
           <p>
-            Power Index movement as the season develops.
+            Weekly scoring movement as the season develops.
           </p>
+
         </div>
 
         <div class="analytics-week-range">
-          WEEK ${weeks[0]} → WEEK ${weeks[weeks.length-1]}
+          WEEK ${weeks[0]}
+          →
+          WEEK ${weeks[weeks.length-1]}
         </div>
 
       </div>
@@ -2876,69 +2853,90 @@ function analyticsTrajectory(teams){
 
       <div class="analytics-trajectory-table">
 
-        ${teams.map((team,index)=>{
+        ${teams.map(team=>{
 
-          const values=weeks.map(week=>{
+          const values=
+            weeks.map(week=>{
 
-            const prior=teams
-              .find(x=>x.roster_id===team.roster_id);
+              const current=
+                team.weeks.find(
+                  x=>x.week===week
+                );
 
-            if(!prior) return 0;
+              return current
+                ?current.points
+                :null;
 
-            const currentWeek=prior.weeks.find(
-              x=>x.week===week
+            });
+
+
+          const valid=
+            values.filter(
+              x=>x!==null
             );
 
-            if(!currentWeek) return null;
+          const min=
+            valid.length
+              ?Math.min(...valid)
+              :0;
 
-            /*
-               Weekly power approximation.
-            */
-
-            return currentWeek.points;
-
-          });
+          const max=
+            valid.length
+              ?Math.max(...valid)
+              :1;
 
 
-          const valid=values.filter(
-            x=>x!==null
-          );
+          const points=
+            values
+              .map((value,i)=>{
 
-          const min=Math.min(...valid,0);
-          const max=Math.max(...valid,1);
+                if(value===null){
+                  return "";
+                }
 
-          const points=values
-            .map((value,i)=>{
+                const x=
+                  weeks.length===1
+                    ?50
+                    :(i/
+                      (weeks.length-1)
+                    )*100;
 
-              if(value===null) return "";
+                const y=
+                  100-
+                  (
+                    (value-min)/
+                    Math.max(
+                      1,
+                      max-min
+                    )
+                  )*
+                  100;
 
-              const x=
-                weeks.length===1
-                  ? 50
-                  : (i/(weeks.length-1))*100;
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
 
-              const y=
-                100-
-                (
-                  (value-min)/
-                  Math.max(1,max-min)
-                )*100;
-
-              return `${x.toFixed(1)},${y.toFixed(1)}`;
-
-            })
-            .filter(Boolean)
-            .join(" ");
+              })
+              .filter(Boolean)
+              .join(" ");
 
 
           return `
             <div class="analytics-trajectory-row">
 
               <div class="analytics-trajectory-team">
-                ${avatar(team.roster_id,"analytics-small-avatar")}
+
+                ${avatar(
+                  team.roster_id,
+                  "analytics-small-avatar"
+                )}
+
                 <span>
-                  ${esc(teamName(team.roster_id))}
+                  ${esc(
+                    teamName(
+                      team.roster_id
+                    )
+                  )}
                 </span>
+
               </div>
 
               <div class="analytics-spark">
@@ -2961,7 +2959,11 @@ function analyticsTrajectory(teams){
               </div>
 
               <div class="analytics-current">
-                ${metricNumber(team.powerIndex)}
+
+                ${metricNumber(
+                  team.powerIndex
+                )}
+
               </div>
 
             </div>
@@ -2976,38 +2978,68 @@ function analyticsTrajectory(teams){
 }
 
 
-/* ---------------------------------------------------------
-   LEAGUE SCIENTIST
-   --------------------------------------------------------- */
+/* =========================================================
+   ANALYTICS AWARDS
+   ========================================================= */
 
 function analyticsAwards(teams){
 
-  if(!teams.length) return "";
+  if(!teams.length){
+    return "";
+  }
 
+  const highestPower=
+    teams[0];
 
-  const highestPower=teams[0];
+  const luckiest=
+    [...teams]
+      .sort(
+        (a,b)=>b.luck-a.luck
+      )[0];
 
-  const luckiest=[...teams]
-    .sort((a,b)=>b.luck-a.luck)[0];
+  const unluckiest=
+    [...teams]
+      .sort(
+        (a,b)=>a.luck-b.luck
+      )[0];
 
-  const unluckiest=[...teams]
-    .sort((a,b)=>a.luck-b.luck)[0];
+  const mostVolatile=
+    [...teams]
+      .sort(
+        (a,b)=>
+          b.volatility-
+          a.volatility
+      )[0];
 
-  const mostVolatile=[...teams]
-    .sort((a,b)=>b.volatility-a.volatility)[0];
+  const mostConsistent=
+    [...teams]
+      .sort(
+        (a,b)=>
+          b.consistency-
+          a.consistency
+      )[0];
 
-  const mostConsistent=[...teams]
-    .sort((a,b)=>b.consistency-a.consistency)[0];
+  const highestCeiling=
+    [...teams]
+      .sort(
+        (a,b)=>
+          b.ceiling-
+          a.ceiling
+      )[0];
 
-  const highestCeiling=[...teams]
-    .sort((a,b)=>b.ceiling-a.ceiling)[0];
-
-  const biggestFraud=[...teams]
-    .sort(
-      (a,b)=>
-        (b.actualWins-b.expectedWins)-
-        (a.actualWins-a.expectedWins)
-    )[0];
+  const biggestFraud=
+    [...teams]
+      .sort(
+        (a,b)=>
+          (
+            b.actualWins-
+            b.expectedWins
+          )-
+          (
+            a.actualWins-
+            a.expectedWins
+          )
+      )[0];
 
 
   return `
@@ -3015,10 +3047,13 @@ function analyticsAwards(teams){
     <section class="analytics-scientist">
 
       <div class="section-label">
+
         LEAGUE SCIENTIST
+
         <span>
           AUTOMATED WEEKLY FINDINGS
         </span>
+
       </div>
 
 
@@ -3027,20 +3062,31 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">◈</div>
+          <div class="analytics-award-icon">
+            ◈
+          </div>
 
-          <small>MOST DOMINANT</small>
+          <small>
+            MOST DOMINANT
+          </small>
 
           <strong>
-            ${esc(teamName(highestPower.roster_id))}
+            ${esc(
+              teamName(
+                highestPower.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${metricNumber(highestPower.powerIndex)}
+            ${metricNumber(
+              highestPower.powerIndex
+            )}
           </b>
 
           <p>
-            Highest composite Power Index in the league.
+            Highest composite Power Index
+            in the league.
           </p>
 
         </article>
@@ -3048,22 +3094,36 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">♧</div>
+          <div class="analytics-award-icon">
+            ♧
+          </div>
 
-          <small>LUCKIEST</small>
+          <small>
+            LUCKIEST
+          </small>
 
           <strong>
-            ${esc(teamName(luckiest.roster_id))}
+            ${esc(
+              teamName(
+                luckiest.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${signed(luckiest.luck)}
+            ${signed(
+              luckiest.luck
+            )}
           </b>
 
           <p>
-            Actual wins are ${metricNumber(
-              Math.abs(luckiest.luck)
-            )} above expected.
+            Actual wins are
+            ${metricNumber(
+              Math.abs(
+                luckiest.luck
+              )
+            )}
+            above expected.
           </p>
 
         </article>
@@ -3071,21 +3131,36 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">☠</div>
+          <div class="analytics-award-icon">
+            ☠
+          </div>
 
-          <small>UNLUCKIEST</small>
+          <small>
+            UNLUCKIEST
+          </small>
 
           <strong>
-            ${esc(teamName(unluckiest.roster_id))}
+            ${esc(
+              teamName(
+                unluckiest.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${signed(unluckiest.luck)}
+            ${signed(
+              unluckiest.luck
+            )}
           </b>
 
           <p>
-            The schedule has taken approximately
-            ${metricNumber(Math.abs(unluckiest.luck))}
+            The schedule has taken
+            approximately
+            ${metricNumber(
+              Math.abs(
+                unluckiest.luck
+              )
+            )}
             wins off the table.
           </p>
 
@@ -3094,20 +3169,31 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">⌁</div>
+          <div class="analytics-award-icon">
+            ⌁
+          </div>
 
-          <small>MOST CHAOTIC</small>
+          <small>
+            MOST CHAOTIC
+          </small>
 
           <strong>
-            ${esc(teamName(mostVolatile.roster_id))}
+            ${esc(
+              teamName(
+                mostVolatile.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${metricNumber(mostVolatile.volatility)}%
+            ${metricNumber(
+              mostVolatile.volatility
+            )}%
           </b>
 
           <p>
-            Highest week-to-week scoring variance.
+            Highest week-to-week
+            scoring variance.
           </p>
 
         </article>
@@ -3115,20 +3201,31 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">▣</div>
+          <div class="analytics-award-icon">
+            ▣
+          </div>
 
-          <small>MOST CONSISTENT</small>
+          <small>
+            MOST CONSISTENT
+          </small>
 
           <strong>
-            ${esc(teamName(mostConsistent.roster_id))}
+            ${esc(
+              teamName(
+                mostConsistent.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${metricNumber(mostConsistent.consistency)}
+            ${metricNumber(
+              mostConsistent.consistency
+            )}
           </b>
 
           <p>
-            Their scoring distribution is the tightest.
+            Their scoring distribution
+            is the tightest.
           </p>
 
         </article>
@@ -3136,20 +3233,31 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">↟</div>
+          <div class="analytics-award-icon">
+            ↟
+          </div>
 
-          <small>HIGHEST CEILING</small>
+          <small>
+            HIGHEST CEILING
+          </small>
 
           <strong>
-            ${esc(teamName(highestCeiling.roster_id))}
+            ${esc(
+              teamName(
+                highestCeiling.roster_id
+              )
+            )}
           </strong>
 
           <b>
-            ${metricNumber(highestCeiling.ceiling)}%
+            ${metricNumber(
+              highestCeiling.ceiling
+            )}%
           </b>
 
           <p>
-            Their top-end output is the strongest.
+            Their top-end output
+            is the strongest.
           </p>
 
         </article>
@@ -3157,12 +3265,20 @@ function analyticsAwards(teams){
 
         <article class="analytics-award fraud">
 
-          <div class="analytics-award-icon">!</div>
+          <div class="analytics-award-icon">
+            !
+          </div>
 
-          <small>FRAUD ALERT</small>
+          <small>
+            FRAUD ALERT
+          </small>
 
           <strong>
-            ${esc(teamName(biggestFraud.roster_id))}
+            ${esc(
+              teamName(
+                biggestFraud.roster_id
+              )
+            )}
           </strong>
 
           <b>
@@ -3173,8 +3289,9 @@ function analyticsAwards(teams){
           </b>
 
           <p>
-            Winning more games than their scoring profile
-            suggests they should.
+            Winning more games than
+            their scoring profile suggests
+            they should.
           </p>
 
         </article>
@@ -3182,13 +3299,21 @@ function analyticsAwards(teams){
 
         <article class="analytics-award">
 
-          <div class="analytics-award-icon">Σ</div>
+          <div class="analytics-award-icon">
+            Σ
+          </div>
 
-          <small>LEAGUE MEDIAN</small>
+          <small>
+            LEAGUE MEDIAN
+          </small>
 
           <strong>
             ${metricNumber(
-              median(teams.map(x=>x.average))
+              median(
+                teams.map(
+                  x=>x.average
+                )
+              )
             )}
           </strong>
 
@@ -3197,7 +3322,8 @@ function analyticsAwards(teams){
           </b>
 
           <p>
-            The middle scoring point across all teams.
+            The middle scoring point
+            across all teams.
           </p>
 
         </article>
@@ -3211,33 +3337,32 @@ function analyticsAwards(teams){
 }
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    ANALYTICS PAGE
-   --------------------------------------------------------- */
+   ========================================================= */
 
-async function analyticsPage(){
+function analyticsPage(){
+
+  /*
+     IMPORTANT:
+     This function is intentionally SYNCHRONOUS.
+
+     The old version was async, which meant the normal
+     renderer received a Promise instead of HTML.
+
+     Data loading is handled by render() instead.
+  */
 
   if(
-    !analyticsState.loaded &&
-    !analyticsState.loading
+    analyticsState.loading &&
+    !analyticsState.loaded
   ){
-
-    /*
-       Render immediately, then populate.
-    */
-
-    setTimeout(async()=>{
-
-      await loadAnalyticsWeeks();
-
-      render();
-
-    },0);
-
 
     return `
 
-      <section class="hero analytics-hero" data-number="07">
+      <section
+        class="hero analytics-hero"
+        data-number="11">
 
         <div class="hero-row">
 
@@ -3283,40 +3408,56 @@ async function analyticsPage(){
   }
 
 
-  if(analyticsState.loading){
+  if(!analyticsState.loaded){
 
     return `
-      <div class="analytics-loading">
 
-        <div class="spinner"></div>
+      <section
+        class="hero analytics-hero"
+        data-number="11">
 
-        <strong>
-          Crunching numbers…
-        </strong>
+        <div class="eyebrow">
+          ADVANCED LEAGUE INTELLIGENCE
+        </div>
 
-      </div>
+        <h1>
+          Analytics
+        </h1>
+
+        <p>
+          Preparing the league model…
+        </p>
+
+      </section>
+
     `;
 
   }
 
 
-  const teams=calculateAdvancedMetrics();
+  const teams=
+    calculateAdvancedMetrics();
 
-  const weeks=Object.keys(analyticsState.weeks)
+  const weeks=
+    Object.keys(
+      analyticsState.weeks
+    )
     .map(Number)
     .sort((a,b)=>a-b);
 
   const latestWeek=
     weeks.length
-      ? weeks[weeks.length-1]
-      : 0;
+      ?weeks[weeks.length-1]
+      :0;
 
 
   if(!teams.length){
 
     return `
 
-      <section class="hero analytics-hero" data-number="07">
+      <section
+        class="hero analytics-hero"
+        data-number="11">
 
         <div class="hero-row">
 
@@ -3360,31 +3501,49 @@ async function analyticsPage(){
 
 
   const leagueAverage=
-    mean(teams.map(x=>x.average));
+    mean(
+      teams.map(
+        x=>x.average
+      )
+    );
 
   const highestScore=
     Math.max(
-      ...teams.flatMap(x=>x.scores)
+      ...teams.flatMap(
+        x=>x.scores
+      )
     );
 
   const medianScore=
     median(
-      teams.flatMap(x=>x.scores)
+      teams.flatMap(
+        x=>x.scores
+      )
     );
 
 
   return `
 
-    <section class="hero analytics-hero" data-number="07">
+    <section
+      class="hero analytics-hero"
+      data-number="11">
 
       <div class="hero-row">
 
         <div>
 
           <div class="eyebrow">
-            ${esc(state.league?.season||"NFL")}
+
+            ${esc(
+              state.league?.season||
+              "NFL"
+            )}
+
             · ADVANCED LEAGUE INTELLIGENCE
-            · THROUGH WEEK ${latestWeek}
+
+            · THROUGH WEEK
+            ${latestWeek}
+
           </div>
 
           <h1>
@@ -3404,42 +3563,44 @@ async function analyticsPage(){
     </section>
 
 
-    <!-- =================================================
-         TOP NUMBERS
-         ================================================= -->
-
     <section class="analytics-definitions">
 
       ${analyticsDefinition(
         "LEAGUE MEAN",
         "Average weekly fantasy score across every team and completed week.",
-        metricNumber(leagueAverage)
+        metricNumber(
+          leagueAverage
+        )
       )}
 
       ${analyticsDefinition(
         "MEDIAN SCORE",
         "The middle weekly score. Half the league's performances are above it and half below.",
-        metricNumber(medianScore)
+        metricNumber(
+          medianScore
+        )
       )}
 
       ${analyticsDefinition(
         "MAX OUTPUT",
         "The highest single-week fantasy score recorded in the current dataset.",
-        metricNumber(highestScore)
+        metricNumber(
+          highestScore
+        )
       )}
 
       ${analyticsDefinition(
         "SAMPLE SIZE",
         "Total team-week observations used by the model.",
-        teams.reduce((a,b)=>a+b.scores.length,0)
+        teams.reduce(
+          (a,b)=>
+            a+b.scores.length,
+          0
+        )
       )}
 
     </section>
 
-
-    <!-- =================================================
-         QUICK DEFINITIONS
-         ================================================= -->
 
     <section class="analytics-explainer">
 
@@ -3450,57 +3611,80 @@ async function analyticsPage(){
       <div class="analytics-explainer-grid">
 
         <div>
-          <strong>xW</strong>
+
+          <strong>
+            xW
+          </strong>
+
           <span>
             Expected Wins
           </span>
+
           <p>
             How many wins your weekly scoring output
             statistically deserved.
           </p>
+
         </div>
 
+
         <div>
-          <strong>ALL-PLAY</strong>
+
+          <strong>
+            ALL-PLAY
+          </strong>
+
           <span>
             Every Team, Every Week
           </span>
+
           <p>
             Your hypothetical record if you played
             every other team every week.
           </p>
+
         </div>
 
+
         <div>
-          <strong>σ</strong>
+
+          <strong>
+            σ
+          </strong>
+
           <span>
             Standard Deviation
           </span>
+
           <p>
             How far your weekly scores typically
             move away from your average.
           </p>
+
         </div>
 
+
         <div>
-          <strong>VORP-ish</strong>
+
+          <strong>
+            VORP-ish
+          </strong>
+
           <span>
             Value Over Replacement
           </span>
+
           <p>
             A future-ready concept measuring how much
             better a team performs than the league baseline.
           </p>
+
         </div>
 
       </div>
 
     </section>
 
-
-    <!-- =================================================
-         POWER RANKINGS
-         ================================================= -->
 
     <section>
 
@@ -3509,7 +3693,8 @@ async function analyticsPage(){
         POWER INDEX
 
         <span>
-          COMPOSITE PERFORMANCE MODEL · WEEK ${latestWeek}
+          COMPOSITE PERFORMANCE MODEL
+          · THROUGH WEEK ${latestWeek}
         </span>
 
       </div>
@@ -3518,8 +3703,12 @@ async function analyticsPage(){
       <div class="analytics-team-list">
 
         ${teams
-          .map((team,i)=>
-            analyticsTeamCard(team,i+1)
+          .map(
+            (team,i)=>
+              analyticsTeamCard(
+                team,
+                i+1
+              )
           )
           .join("")}
 
@@ -3528,23 +3717,11 @@ async function analyticsPage(){
     </section>
 
 
-    <!-- =================================================
-         WEEKLY TRAJECTORY
-         ================================================= -->
-
     ${analyticsTrajectory(teams)}
 
 
-    <!-- =================================================
-         LEAGUE SCIENTIST
-         ================================================= -->
-
     ${analyticsAwards(teams)}
 
-
-    <!-- =================================================
-         METHOD
-         ================================================= -->
 
     <section class="analytics-method">
 
@@ -3555,6 +3732,7 @@ async function analyticsPage(){
       <div class="analytics-method-grid">
 
         <div>
+
           <strong>
             DATA
           </strong>
@@ -3563,9 +3741,12 @@ async function analyticsPage(){
             Weekly matchup scores are pulled directly
             from the public Sleeper league API.
           </p>
+
         </div>
 
+
         <div>
+
           <strong>
             POWER INDEX
           </strong>
@@ -3575,9 +3756,12 @@ async function analyticsPage(){
             expected wins, all-play performance,
             consistency and relative league strength.
           </p>
+
         </div>
 
+
         <div>
+
           <strong>
             LUCK INDEX
           </strong>
@@ -3587,9 +3771,12 @@ async function analyticsPage(){
             Positive numbers mean the schedule has
             generally helped.
           </p>
+
         </div>
 
+
         <div>
+
           <strong>
             VOLATILITY
           </strong>
@@ -3598,6 +3785,7 @@ async function analyticsPage(){
             Standard deviation divided by average
             scoring, expressed as a percentage.
           </p>
+
         </div>
 
       </div>
@@ -3605,48 +3793,184 @@ async function analyticsPage(){
     </section>
 
   `;
+}
+
+
+/* =========================================================
+   ROUTING / RENDER
+   ========================================================= */
+
+function page(){
+
+  if(state.loading){
+
+    return `
+      <div class="loading-screen">
+
+        <div class="spinner"></div>
+
+        <h1>
+          Loading your league
+        </h1>
+
+        <p>
+          Pulling live data from Sleeper…
+        </p>
+
+      </div>
+    `;
+
+  }
+
+  if(state.error){
+
+    return `
+      <div class="error-box">
+
+        <h2>
+          Couldn't load the league
+        </h2>
+
+        <p class="muted">
+          Check your connection and try again.
+          This site uses Sleeper's public read-only API.
+        </p>
+
+        <button
+          class="btn"
+          onclick="load()">
+
+          Retry
+
+        </button>
+
+      </div>
+    `;
+
+  }
+
+
+  return ({
+    standings:standingsPage,
+    matchups:matchupsPage,
+    teams:teamsPage,
+    transactions:transactionsPage,
+    playoffs:bracketPage,
+    analytics:analyticsPage
+  }[state.route]||home)();
 
 }
 
 
-/* ---------------------------------------------------------
-   PATCH ROUTING
-   --------------------------------------------------------- */
+function render(){
 
-const originalPage=page;
+  if(state.league){
 
-page=function(){
+    const brand=$("#brand-name");
+    const season=$("#brand-season");
+    const sleeper=$("#sleeper-link");
 
-  if(state.route==="analytics"){
+    if(brand){
+      brand.textContent=
+        state.league.name||
+        "League HQ";
+    }
 
-    /*
-       analyticsPage() can perform async loading.
-       The first call renders its loading state.
-    */
+    if(season){
+      season.textContent=
+        `${state.league.season||""} · Sleeper Fantasy Football`;
+    }
 
-    return analyticsPage();
+    if(sleeper){
+      sleeper.href=
+        `https://sleeper.app/leagues/${LEAGUE_ID}`;
+    }
 
   }
 
-  return originalPage();
 
-};
+  document
+    .querySelectorAll("[data-route]")
+    .forEach(
+      a=>
+        a.classList.toggle(
+          "active",
+          a.dataset.route===
+          state.route
+        )
+    );
 
 
-/* ---------------------------------------------------------
-   PATCH ROUTE VALIDATION
-   --------------------------------------------------------- */
+  $("#content").innerHTML=
+    page();
 
-const originalRoute=route;
 
-route=function(){
+  /*
+     Analytics loads AFTER its initial loading screen
+     has been rendered.
+
+     This is the important part that fixes the old
+     Promise/async rendering problem.
+  */
+
+  if(
+    state.route==="analytics" &&
+    !analyticsState.loaded &&
+    !analyticsState.loading &&
+    !state.loading
+  ){
+
+    loadAnalyticsWeeks()
+      .then(()=>{
+
+        /*
+           Only redraw if the user is still
+           looking at Analytics.
+        */
+
+        if(state.route==="analytics"){
+          render();
+        }
+
+      })
+      .catch(e=>{
+
+        console.error(
+          "Analytics failed:",
+          e
+        );
+
+        analyticsState.loading=false;
+
+        if(state.route==="analytics"){
+          render();
+        }
+
+      });
+
+  }
+
+
+  if(state.route==="home"){
+
+    renderNews();
+
+    updateCountdowns();
+
+  }
+
+}
+
+
+function route(){
 
   const r=(
     location.hash
       .replace("#","")
-      .split("/")[0] ||
+      ||
       "home"
-  );
+  )
+  .split("/")[0];
 
 
   state.route=[
@@ -3664,48 +3988,162 @@ route=function(){
 
   render();
 
-};
-
-
-/* ---------------------------------------------------------
-   GLOBAL REFRESH PATCH
-   --------------------------------------------------------- */
-
-const originalLoad=load;
-
-load=async function(){
-
-  analyticsState.loaded=false;
-  analyticsState.loading=false;
-  analyticsState.weeks={};
-
-  await originalLoad();
-
-};
-
-
-/* ---------------------------------------------------------
-   ANALYTICS WEEK REFRESH
-   --------------------------------------------------------- */
-
-window.refreshAnalytics=async function(){
-
-  analyticsState.loaded=false;
-  analyticsState.loading=false;
-  analyticsState.weeks={};
-
-  render();
-
-};
-
-
-/* ---------------------------------------------------------
-   STARTUP SAFETY
-   --------------------------------------------------------- */
-
-if(
-  typeof state!=="undefined" &&
-  state.route==="analytics"
-){
-  render();
 }
+
+
+/* =========================================================
+   UI
+   ========================================================= */
+
+function toast(msg){
+
+  const t=$("#toast");
+
+  if(!t){
+    return;
+  }
+
+  t.textContent=msg;
+
+  t.classList.add("show");
+
+  setTimeout(
+    ()=>t.classList.remove("show"),
+    1800
+  );
+
+}
+
+
+function copyShare(){
+
+  const u=
+    location.href.split("#")[0]+
+    "#home";
+
+  navigator
+    .clipboard
+    ?.writeText(u)
+    .then(
+      ()=>toast("Share link copied")
+    )
+    .catch(
+      ()=>toast(u)
+    );
+
+}
+
+
+/* =========================================================
+   ANALYTICS MANUAL REFRESH
+   ========================================================= */
+
+function refreshAnalytics(){
+
+  analyticsState.loaded=false;
+  analyticsState.loading=false;
+  analyticsState.weeks={};
+
+  render();
+
+}
+
+
+/* =========================================================
+   GLOBALS
+   ========================================================= */
+
+window.copyShare=copyShare;
+window.load=load;
+window.filterTeams=filterTeams;
+window.refreshAnalytics=refreshAnalytics;
+
+
+/* =========================================================
+   THEME
+   ========================================================= */
+
+const refreshButton=$("#refresh");
+
+if(refreshButton){
+
+  refreshButton.addEventListener(
+    "click",
+    load
+  );
+
+}
+
+
+const themeButton=$("#theme");
+
+if(themeButton){
+
+  themeButton.addEventListener(
+    "click",
+    ()=>{
+
+      const d=
+        document.documentElement.dataset.theme===
+        "dark";
+
+      document.documentElement.dataset.theme=
+        d
+          ?"light"
+          :"dark";
+
+      localStorage.setItem(
+        "league_theme",
+        d
+          ?"light"
+          :"dark"
+      );
+
+    }
+  );
+
+}
+
+
+const saved=
+  localStorage.getItem(
+    "league_theme"
+  );
+
+if(saved){
+
+  document.documentElement.dataset.theme=
+    saved;
+
+}
+
+
+/* =========================================================
+   STARTUP
+   ========================================================= */
+
+window.addEventListener(
+  "hashchange",
+  route
+);
+
+route();
+
+load();
+
+loadNews();
+
+setInterval(
+  updateCountdowns,
+  1000
+);
+
+setInterval(
+  loadNews,
+  10*60*1000
+);
+
+setInterval(
+  load,
+  5*60*1000
+);
