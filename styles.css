@@ -1213,3 +1213,634 @@ button{
   }
 
 }
+
+/* =========================================================
+   ANALYTICS
+   ========================================================= */
+
+.analytics-hero{
+  margin-bottom:13px;
+}
+
+.analytics-loading{
+  min-height:260px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+  border-radius:4px;
+  text-align:center;
+}
+
+.analytics-loading strong{
+  font:700 17px 'Space Grotesk';
+}
+
+.analytics-loading span{
+  color:var(--muted);
+  font:9px 'DM Mono';
+  text-transform:uppercase;
+}
+
+
+/* =========================================================
+   DEFINITION CARDS
+   ========================================================= */
+
+.analytics-definitions{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:11px;
+  margin-bottom:13px;
+}
+
+.analytics-definition{
+  background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:17px;
+  min-height:145px;
+  position:relative;
+  overflow:hidden;
+}
+
+.analytics-definition:after{
+  content:"";
+  position:absolute;
+  width:90px;
+  height:90px;
+  right:-42px;
+  bottom:-42px;
+  border:1px solid var(--line);
+  border-radius:50%;
+}
+
+.analytics-definition-title{
+  font:8px 'DM Mono';
+  color:var(--muted);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.analytics-definition-value{
+  margin-top:17px;
+  font:700 34px/1 'Space Grotesk';
+  letter-spacing:-.07em;
+}
+
+.analytics-definition-copy{
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+  margin-top:9px;
+  max-width:240px;
+}
+
+
+/* =========================================================
+   EXPLAINER
+   ========================================================= */
+
+.analytics-explainer{
+  border:1px solid var(--line);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:22px;
+}
+
+.analytics-explainer-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+  margin-top:14px;
+}
+
+.analytics-explainer-grid div{
+  border-left:2px solid var(--accent);
+  padding-left:12px;
+}
+
+.analytics-explainer-grid strong{
+  display:block;
+  font:700 25px 'Space Grotesk';
+  letter-spacing:-.05em;
+}
+
+.analytics-explainer-grid span{
+  display:block;
+  color:var(--muted);
+  font:8px 'DM Mono';
+  text-transform:uppercase;
+  margin-top:1px;
+}
+
+.analytics-explainer-grid p{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+
+
+/* =========================================================
+   TEAM ANALYTICS
+   ========================================================= */
+
+.analytics-team-list{
+  display:grid;
+  gap:8px;
+  margin-bottom:25px;
+}
+
+.analytics-team-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:14px;
+  border-radius:4px;
+}
+
+.analytics-team-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.analytics-rank{
+  width:28px;
+  color:var(--muted);
+  font:700 11px 'DM Mono';
+}
+
+.analytics-avatar{
+  width:38px;
+  height:38px;
+  object-fit:cover;
+  border-radius:50%;
+  background:var(--surface2);
+  display:grid;
+  place-items:center;
+  font:700 10px 'DM Mono';
+}
+
+.analytics-team-name{
+  min-width:0;
+  flex:1;
+}
+
+.analytics-team-name strong{
+  display:block;
+  font:700 14px 'Space Grotesk';
+  letter-spacing:-.025em;
+}
+
+.analytics-team-name span{
+  display:block;
+  color:var(--muted);
+  font:8px 'DM Mono';
+  text-transform:uppercase;
+  margin-top:3px;
+}
+
+.analytics-power{
+  text-align:right;
+  padding-left:12px;
+}
+
+.analytics-power small{
+  display:block;
+  color:var(--muted);
+  font:7px 'DM Mono';
+  letter-spacing:.1em;
+}
+
+.analytics-power strong{
+  display:block;
+  font:700 29px 'Space Grotesk';
+  letter-spacing:-.06em;
+}
+
+
+/* =========================================================
+   ANALYTICS BARS
+   ========================================================= */
+
+.analytics-bars{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+  margin:14px 0 12px 66px;
+}
+
+.analytics-bar div{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font:8px 'DM Mono';
+}
+
+.analytics-bar div span{
+  color:var(--muted);
+}
+
+.analytics-bar div b{
+  font-weight:700;
+}
+
+.analytics-bar i{
+  display:block;
+  height:4px;
+  margin-top:6px;
+  background:var(--surface2);
+  overflow:hidden;
+}
+
+.analytics-bar em{
+  display:block;
+  height:100%;
+  background:var(--ink);
+}
+
+
+/* =========================================================
+   STAT GRID
+   ========================================================= */
+
+.analytics-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  margin-left:66px;
+}
+
+.analytics-stat-grid>div{
+  min-height:72px;
+  background:var(--surface);
+  padding:10px;
+}
+
+.analytics-stat-grid small{
+  display:block;
+  color:var(--muted);
+  font:7px 'DM Mono';
+  letter-spacing:.1em;
+}
+
+.analytics-stat-grid strong{
+  display:block;
+  margin-top:4px;
+  font:700 18px 'Space Grotesk';
+  letter-spacing:-.04em;
+}
+
+.analytics-stat-grid span{
+  display:block;
+  color:var(--muted);
+  font:7px 'DM Mono';
+  line-height:1.35;
+  margin-top:3px;
+}
+
+.analytics-positive{
+  color:var(--green);
+}
+
+.analytics-negative{
+  color:var(--accent);
+}
+
+
+/* =========================================================
+   TRAJECTORY
+   ========================================================= */
+
+.analytics-trajectory{
+  background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:25px;
+}
+
+.analytics-trajectory-head{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:15px;
+}
+
+.analytics-trajectory-head p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.analytics-week-range{
+  color:var(--muted);
+  font:8px 'DM Mono';
+  text-transform:uppercase;
+}
+
+.analytics-trajectory-table{
+  display:grid;
+  gap:5px;
+}
+
+.analytics-trajectory-row{
+  display:grid;
+  grid-template-columns:170px 1fr 50px;
+  align-items:center;
+  gap:10px;
+}
+
+.analytics-trajectory-team{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+}
+
+.analytics-small-avatar{
+  width:23px;
+  height:23px;
+  border-radius:50%;
+  background:var(--surface2);
+  object-fit:cover;
+  display:grid;
+  place-items:center;
+  font:700 7px 'DM Mono';
+  flex:none;
+}
+
+.analytics-trajectory-team span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:9px 'DM Mono';
+}
+
+.analytics-spark{
+  height:32px;
+  border-bottom:1px solid var(--line);
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 49%,
+      var(--line) 50%,
+      transparent 51%
+    );
+}
+
+.analytics-spark svg{
+  width:100%;
+  height:100%;
+  color:var(--accent);
+  overflow:visible;
+}
+
+.analytics-current{
+  text-align:right;
+  font:700 12px 'Space Grotesk';
+}
+
+
+/* =========================================================
+   SCIENTIST
+   ========================================================= */
+
+.analytics-scientist{
+  margin-bottom:25px;
+}
+
+.analytics-awards-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:9px;
+  margin-top:12px;
+}
+
+.analytics-award{
+  background:var(--surface);
+  border:1px solid var(--line);
+  padding:15px;
+  min-height:170px;
+  position:relative;
+  overflow:hidden;
+}
+
+.analytics-award:after{
+  content:"";
+  position:absolute;
+  width:100px;
+  height:100px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  right:-55px;
+  bottom:-55px;
+}
+
+.analytics-award-icon{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--line);
+  background:var(--surface2);
+  font:700 13px 'DM Mono';
+  margin-bottom:17px;
+}
+
+.analytics-award small{
+  display:block;
+  color:var(--muted);
+  font:7px 'DM Mono';
+  letter-spacing:.12em;
+}
+
+.analytics-award strong{
+  display:block;
+  margin-top:5px;
+  font:700 16px 'Space Grotesk';
+  letter-spacing:-.035em;
+}
+
+.analytics-award b{
+  display:block;
+  margin-top:3px;
+  font:700 24px 'Space Grotesk';
+  letter-spacing:-.06em;
+}
+
+.analytics-award p{
+  margin:7px 0 0;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.4;
+  max-width:220px;
+}
+
+.analytics-award.fraud{
+  border-top:3px solid var(--accent);
+}
+
+
+/* =========================================================
+   METHODOLOGY
+   ========================================================= */
+
+.analytics-method{
+  border-top:1px solid var(--line);
+  padding-top:17px;
+}
+
+.analytics-method-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-top:12px;
+}
+
+.analytics-method-grid div{
+  padding-right:12px;
+  border-right:1px solid var(--line);
+}
+
+.analytics-method-grid div:last-child{
+  border-right:0;
+}
+
+.analytics-method-grid strong{
+  display:block;
+  font:8px 'DM Mono';
+  letter-spacing:.1em;
+}
+
+.analytics-method-grid p{
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.45;
+  margin:7px 0 0;
+}
+
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.analytics-empty{
+  min-height:240px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  border:1px solid var(--line);
+  background:var(--surface);
+}
+
+.analytics-empty strong{
+  font:700 18px 'Space Grotesk';
+}
+
+.analytics-empty span{
+  color:var(--muted);
+  font:9px 'DM Mono';
+  text-transform:uppercase;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media(max-width:1000px){
+
+  .analytics-definitions{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .analytics-explainer-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .analytics-awards-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .analytics-method-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .analytics-method-grid div:nth-child(2){
+    border-right:0;
+  }
+
+}
+
+
+@media(max-width:700px){
+
+  .analytics-definitions,
+  .analytics-explainer-grid,
+  .analytics-awards-grid,
+  .analytics-method-grid{
+    grid-template-columns:1fr;
+  }
+
+  .analytics-bars{
+    grid-template-columns:1fr;
+    margin-left:0;
+  }
+
+  .analytics-stat-grid{
+    grid-template-columns:repeat(2,1fr);
+    margin-left:0;
+  }
+
+  .analytics-trajectory-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .analytics-trajectory-row{
+    grid-template-columns:110px 1fr 38px;
+  }
+
+  .analytics-trajectory-team span{
+    font-size:8px;
+  }
+
+}
+
+
+@media(max-width:500px){
+
+  .analytics-team-top{
+    align-items:flex-start;
+  }
+
+  .analytics-rank{
+    width:20px;
+  }
+
+  .analytics-power{
+    margin-left:auto;
+  }
+
+  .analytics-power strong{
+    font-size:24px;
+  }
+
+  .analytics-stat-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
